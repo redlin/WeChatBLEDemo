@@ -1,0 +1,153 @@
+<style lang="less">
+  @import '../style/list.less';
+</style>
+<template>
+  <view class="container">
+    <button @tap="refresh">刷新</button>
+    <view class="weui-flex details-details-row" style="width: 100%;" >
+      <view class="weui-flex__item">
+        <view class="details-data-value" style="font-size: 12px;">
+            LocalName
+        </view>
+      </view>
+      <view class="weui-flex__item">
+        <view class="details-data-value" style="font-size: 12px;">
+            Name
+        </view>
+      </view>
+    </view>
+    <view class="weui-flex details-details-row" style="width: 100%;" wx:for="{{devices}}" wx:key="deviceId" @tap="details" data-id="{{item.deviceId}}">
+      <view class="weui-flex__item">
+        <view class="details-data-value" style="font-size: 12px;">
+            {{item.localName}}
+        </view>
+      </view>
+      <view class="weui-flex__item">
+        <view class="details-data-value" style="font-size: 12px;">
+            {{item.name}}
+        </view>
+      </view>
+    </view>
+    
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import Panel from '@/components/panel' // alias example
+  import Counter from 'counter' // alias example
+  import List from '../components/list' // aliasFields example
+  import moduleA from 'module-a' // aliasFields ignore module example
+  import Group from '../components/group'
+  import Toast from 'wepy-com-toast'
+  import testMixin from '../mixins/test'
+
+  console.log('moduleA ignored: ', moduleA) // => moduleA ignored: {}
+
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '对讲机蓝牙测试'
+    }
+    components = {
+      panel: Panel,
+      counter1: Counter,
+      counter2: Counter,
+      list: List,
+      group: Group,
+      toast: Toast
+    }
+
+    mixins = [testMixin]
+
+    data = {
+      devices: [1, 2, 3, 4]
+    }
+
+    computed = {
+
+    }
+
+    methods = {
+      refresh() {
+        console.log('refresh...')
+        // this.discoverBluetoothDevices()
+        this.startDiscover()
+      },
+      details(e) {
+        console.log('device id', e)
+        this.$root.$navigate({url: `details?id=${e.currentTarget.dataset.id}`})
+      }
+    }
+
+    events = {
+    }
+
+    onLoad() {
+      this.discoverBluetoothDevices()
+    }
+
+    onShow() {
+    }
+
+    discoverBluetoothDevices() {
+      /* global wx */
+      /* eslint no-undef: "error" */
+      // let that = this
+      wx.openBluetoothAdapter({
+        success: function (res) {
+          console.log('openBluetoothAdapter success', res)
+          // that.startDiscover()
+        },
+        fail: function (res) {
+          console.log('openBluetoothAdapter fail', res)
+        }
+      })
+      // wx.getBluetoothAdapterState({
+      //   success: function (res) {
+      //     console.log('getBluetoothAdapterState res', res)
+      //   }
+      // })
+    }
+
+    startDiscover() {
+      let that = this
+      wx.startBluetoothDevicesDiscovery({
+        success: function (res) {
+          that.getDevices()
+          console.log('startBluetoothDevicesDiscovery success', res)
+        },
+        fail: function (res) {
+          console.log('openBluetoothAdapter fail', res)
+        }
+      })
+    }
+
+    getDevices() {
+      console.log('get devices ...')
+      let that = this
+      wx.getBluetoothDevices({
+        success: function (res) {
+          console.log('getBluetoothDevices success', res)
+          that.devices = res.devices
+          that.$apply()
+          // if (res.devices[0]) {
+          //   console.log(that.ab2hex(res.devices[0].advertisData))
+          // }
+        },
+        fail: function (res) {
+          console.log('getBluetoothDevices fail', res)
+        }
+      })
+    }
+
+    ab2hex(buffer) {
+      var hexArr = Array.prototype.map.call(
+        new Uint8Array(buffer),
+        function(bit) {
+          return ('00' + bit.toString(16)).slice(-2)
+        }
+      )
+      return hexArr.join('')
+    }
+  }
+</script>

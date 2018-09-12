@@ -1,0 +1,88 @@
+<style lang="less">
+  @import '../style/list.less';
+  page {
+    background-color: white;
+  }
+</style>
+<template>
+  <view class="container">
+    <view>Character ID: {{uuid}}</view>
+  
+
+    <view class="weui-flex details-details-row" style="width: 100%;" >
+      <view class="weui-flex__item">
+        <view class="details-data-value" style="font-size: 12px;">
+            Character List
+        </view>
+      </view>
+    </view>
+    <view class="weui-flex details-details-row" style="width: 100%;" wx:for="{{characteristics}}" wx:key="uuid" data-id="{{item.uuid}}">
+      <view class="weui-flex__item">
+        <view class="details-data-value" style="font-size: 12px;">
+            {{item.uuid}}
+        </view>
+      </view>
+    </view>
+
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class CharacterList extends wepy.page {
+    config = {
+      navigationBarTitleText: 'Character'
+    }
+    components = {
+    }
+
+    data = {
+      uuid: '',
+      characteristics: [],
+      deviceId: ''
+    }
+
+    computed = {
+      // now () {
+      //   return +new Date()
+      // }
+    }
+
+    methods = {
+    }
+
+    events = {
+    }
+
+    onShow() {
+      this.getCharacterList()
+    }
+
+    onLoad(options) {
+      console.log('Character list options', options)
+      this.deviceId = options.deviceId
+      this.uuid = options.id
+      this.$apply()
+    }
+
+    getCharacterList() {
+      let that = this
+      console.log('selected service uuid', this.uuid)
+      /* global wx */
+      /* eslint no-undef: "error" */
+      wx.getBLEDeviceCharacteristics({
+        deviceId: this.deviceId,
+        serviceId: this.uuid,
+        success: function (res) {
+          console.log('getBLEDeviceCharacteristics success', res)
+          that.characteristics = res.characteristics
+          that.$apply()
+        },
+        fail: function (res) {
+          console.log('getBLEDeviceCharacteristics fails', res)
+        }
+      })
+    }
+  }
+</script>

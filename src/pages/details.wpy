@@ -1,0 +1,125 @@
+<style lang="less">
+  @import '../style/list.less';
+  page {
+    background-color: white;
+  }
+</style>
+<template>
+  <view class="container">
+    <view>对讲机ID: {{deviceId}}</view>
+    <view class="weui-flex details-details-row" style="width: 100%;" >
+      <view class="weui-flex__item">
+        <view class="details-data-value" style="font-size: 12px; padding: 10px">
+             <button @tap="connect">连接</button>
+        </view>
+      </view>
+      <view class="weui-flex__item">
+        <view class="details-data-value" style="font-size: 12px; padding: 10px">
+            <button @tap="disconnect">断开</button>
+        </view>
+      </view>
+    </view>
+
+    <view class="weui-flex details-details-row" style="width: 100%;" >
+      <view class="weui-flex__item">
+        <view class="details-data-value" style="font-size: 12px;">
+            Services
+        </view>
+      </view>
+    </view>
+    <view class="weui-flex details-details-row" style="width: 100%;" wx:for="{{services}}" wx:key="uuid" @tap="getCharacterList" data-id="{{item.uuid}}">
+      <view class="weui-flex__item">
+        <view class="details-data-value" style="font-size: 12px;">
+            {{item.uuid}}
+        </view>
+      </view>
+    </view>
+
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class Template extends wepy.page {
+    config = {
+      navigationBarTitleText: '对讲机'
+    }
+    components = {
+    }
+
+    data = {
+      deviceId: '',
+      services: []
+    }
+
+    computed = {
+      // now () {
+      //   return +new Date()
+      // }
+    }
+
+    methods = {
+      connect() {
+        let that = this
+        /* global wx */
+        /* eslint no-undef: "error" */
+        wx.createBLEConnection({
+          deviceId: this.deviceId,
+          success: function (res) {
+            console.log('createBLEConnection success', res)
+            wx.getBLEDeviceServices({
+              deviceId: that.deviceId,
+              success: function (res) {
+                console.log('device services:', res.services)
+                that.services = res.services
+                that.$apply()
+              }
+            })
+          },
+          fail: function (res) {
+            console.log('createBLEConnection fails', res)
+          }
+        })
+      },
+      disconnect() {
+        /* global wx */
+        /* eslint no-undef: "error" */
+        wx.closeBLEConnection({
+          deviceId: this.deviceId,
+          success: function (res) {
+            console.log('createBLEConnection success', res)
+          },
+          fail: function (res) {
+            console.log('createBLEConnection fails', res)
+          }
+        })
+      },
+      getCharacterList(e) {
+        this.$root.$navigate({url: `character_list?id=${e.currentTarget.dataset.id}&deviceId=${this.deviceId}`})
+        // console.log('selected service uuid', e.currentTarget.dataset.id)
+        // wx.getBLEDeviceCharacteristics({
+        //   deviceId: this.deviceId,
+        //   serviceId: e.currentTarget.dataset.id,
+        //   success: function (res) {
+        //     console.log('getBLEDeviceCharacteristics success', res)
+        //   },
+        //   fail: function (res) {
+        //     console.log('getBLEDeviceCharacteristics fails', res)
+        //   }
+        // })
+      }
+    }
+
+    events = {
+    }
+
+    onShow() {
+      this.services = []
+    }
+
+    onLoad(options) {
+      this.deviceId = options.id
+    }
+  }
+</script>
